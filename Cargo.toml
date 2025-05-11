@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = [
+    "emu",
+    "hw-dbg",
+    "web/emu-wasm",
+]
+
+[profile.release]
+debug = true
