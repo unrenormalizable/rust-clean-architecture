@@ -104,7 +104,6 @@ stages:
               failOnStderr: true
               showWarnings: true
               pwsh: true
-            workingDirectory: "$(be_folder)"
 
           - task: PowerShell@2
             displayName: "Run tests"
@@ -115,7 +114,6 @@ stages:
               failOnStderr: true
               showWarnings: true
               pwsh: true
-            workingDirectory: "$(be_folder)"
 
           - task: PowerShell@2
             displayName: "Run fmt"
@@ -126,7 +124,6 @@ stages:
               failOnStderr: true
               showWarnings: true
               pwsh: true
-            workingDirectory: "$(be_folder)"
 
           - task: PowerShell@2
             displayName: "Run clippy"
@@ -137,7 +134,6 @@ stages:
               failOnStderr: true
               showWarnings: true
               pwsh: true
-            workingDirectory: "$(be_folder)"
 
           - task: PublishBuildArtifacts@1
             displayName: "Upload build output"
