@@ -1,0 +1,104 @@
+parameters:
+  - name: deployResourceGroupName
+    type: string
+
+steps:
+  - pwsh: az --version
+    displayName: "Show Azure CLI version"
+
+  - task: PowerShell@2
+    displayName: "Azure login"
+    inputs:
+      targetType: "inline"
+      script: |
+        az login --service-principal --username $env:AZ_LOGIN_USERNAME --password $env:AZ_LOGIN_PASSWORD --tenant $env:AZ_LOGIN_TENANT
+        az account show
+      failOnStderr: true
+      showWarnings: true
+      pwsh: true
+    env:
+      AZ_LOGIN_USERNAME: $(AZ_LOGIN_USERNAME)
+      AZ_LOGIN_PASSWORD: $(AZ_LOGIN_PASSWORD)
+      AZ_LOGIN_TENANT: $(AZ_LOGIN_TENANT)
+
+  - task: DownloadBuildArtifacts@1
+    displayName: "Download ARM templates"
+    inputs:
+      buildType: "current"
+      artifactName: $(artifactName_arm)
+      downloadPath: "$(System.ArtifactsDirectory)"
+
+  - task: PowerShell@2
+    displayName: "ARM deployment"
+    inputs:
+      targetType: "inline"
+      script: |
+        az bicep uninstall
+        az config set bicep.use_binary_from_path=false
+        az bicep install
+        az deployment group create --name "$env:DEPLOYMENT_NAME" --subscription $env:SUBSCRIPTION_ID --resource-group $env:RESOURCE_GROUP_NAME --mode Complete --template-file "$env:ARM_ARTIFACT_DIR/main.bicep" --parameters "$env:ARM_ARTIFACT_DIR/$(System.StageName).main.bicepparam" deployment_version="$env:BUILD_BUILDNUMBER" deployment_timestamp="$env:SYSTEM_PIPELINESTARTTIME" auth0Domain="$env:AUTH0_DOMAIN" auth0ClientId="$env:AUTH0_CLIENT_ID" auth0Audience="$env:AUTH0_AUDIENCE"  auth0ClientSecret="$env:AUTH0_CLIENT_SECRET"
+        $json = az deployment group show --resource-group $env:RESOURCE_GROUP_NAME --name "$env:DEPLOYMENT_NAME" --query properties.outputs | ConvertFrom-Json
+        $json
+        $json.PSObject.Properties | % { Write-Host "##vso[task.setvariable variable=$($_.Name)]$($_.Value.value)" }
+      failOnStderr: false
+      showWarnings: true
+      pwsh: true
+    env:
+      RESOURCE_GROUP_NAME: ${{ parameters.deployResourceGroupName }}
+      DEPLOYMENT_NAME: ado_$(System.StageName)_deployment_$(Build.BuildNumber)
+      ARM_ARTIFACT_DIR: $(System.ArtifactsDirectory)/$(artifactName_arm)
+      SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+      AUTH0_DOMAIN: $(Authentication__Auth0__Domain)
+      AUTH0_CLIENT_ID: $(Authentication__Auth0__ClientId)
+      AUTH0_AUDIENCE: $(Authentication__Auth0__Audience)
+      AUTH0_CLIENT_SECRET: $(Authentication__Auth0__ClientSecret)
+
+  - task: PowerShell@2
+    displayName: "Print ARM deployment Outputs"
+    inputs:
+      targetType: "inline"
+      script: |
+        echo "deploymentName: $env:DEPLOYMENT_NAME"
+        echo "resourceGroupName: $env:RESOURCE_GROUP_NAME"
+        echo "webAppName: $env:WEBAPP_NAME"
+      failOnStderr: true
+      showWarnings: true
+      pwsh: true
+    env:
+      DEPLOYMENT_NAME: $(deploymentName)
+      RESOURCE_GROUP_NAME: $(resourceGroupName)
+      WEBAPP_NAME: $(webAppName)
+
+  - task: DownloadBuildArtifacts@1
+    displayName: "Download build outputs"
+    inputs:
+      buildType: "current"
+      artifactName: "$(artifactName_app)"
+      downloadPath: "$(System.ArtifactsDirectory)"
+
+  - task: PowerShell@2
+    displayName: "Compress build outputs"
+    inputs:
+      targetType: "inline"
+      script: |
+        $artifact_root = "$(System.ArtifactsDirectory)\$(artifactName_app)\$(artifactName_app)"
+        Compress-Archive -Path "$artifact_root\*" -DestinationPath "$(System.ArtifactsDirectory)\$(artifactName_app).zip" -verbose
+      failOnStderr: true
+      showWarnings: true
+      pwsh: true
+
+  - task: PowerShell@2
+    displayName: "WebApp deployment"
+    inputs:
+      targetType: "inline"
+      script: |
+        az bicep uninstall
+        az config set bicep.use_binary_from_path=false
+        az bicep install
+        az webapp deploy --resource-group $env:RESOURCE_GROUP_NAME --name $env:WEBAPP_NAME --src-path "$(System.ArtifactsDirectory)\$(artifactName_app).zip" --type zip
+      failOnStderr: false
+      showWarnings: true
+      pwsh: true
+    env:
+      RESOURCE_GROUP_NAME: ${{ parameters.deployResourceGroupName }}
+      WEBAPP_NAME: $(webAppName)

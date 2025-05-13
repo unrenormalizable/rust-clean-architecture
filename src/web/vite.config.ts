@@ -1,20 +1,75 @@
-/// <reference types="vitest" />
-import react from '@vitejs/plugin-react-swc'
-import path from 'path'
-import { defineConfig } from 'vite'
-import viteSvgr from 'vite-plugin-svgr'
-import tsconfigPaths from 'vite-tsconfig-paths'
+// @ts-nocheck
+import { fileURLToPath, URL } from 'node:url'
 
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react-swc'
+import fs from 'fs'
+import path from 'path'
+import child_process from 'child_process'
+import { env } from 'process'
+import tailwindcss from '@tailwindcss/vite'
+
+const baseFolder =
+  env.APPDATA !== undefined && env.APPDATA !== ''
+    ? `${env.APPDATA}/ASP.NET/https`
+    : `${env.HOME}/.aspnet/https`
+
+const certificateName = 'web'
+const certFilePath = path.join(baseFolder, `${certificateName}.pem`)
+const keyFilePath = path.join(baseFolder, `${certificateName}.key`)
+
+if (!fs.existsSync(baseFolder)) {
+  fs.mkdirSync(baseFolder, { recursive: true })
+}
+
+if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
+  if (
+    0 !==
+    child_process.spawnSync(
+      'dotnet',
+      [
+        'dev-certs',
+        'https',
+        '--export-path',
+        certFilePath,
+        '--format',
+        'Pem',
+        '--no-password',
+      ],
+      { stdio: 'inherit' }
+    ).status
+  ) {
+    throw new Error('Could not create certificate.')
+  }
+}
+
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), viteSvgr(), tsconfigPaths()],
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  build: {
+    chunkSizeWarningLimit: 1.5 * 1024 * 1024,
+  },
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: "./src/__tests__/setup.ts"
+    setupFiles: ['src/__tests__/setup.js'],
   },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
-    }
-  }
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://localhost:61061',
+        secure: false,
+      },
+    },
+    port: 61060,
+    https: {
+      key: fs.readFileSync(keyFilePath),
+      cert: fs.readFileSync(certFilePath),
+    },
+  },
 })

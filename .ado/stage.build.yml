@@ -1,0 +1,148 @@
+stages:
+  - stage: build
+    jobs:
+      - job: arm
+        displayName: ARM
+        steps:
+          - pwsh: az --version
+            displayName: "Show Azure CLI version"
+
+          - task: PowerShell@2
+            displayName: "Azure login"
+            inputs:
+              targetType: "inline"
+              script: |
+                az login --service-principal --username $env:AZ_LOGIN_USERNAME --password $env:AZ_LOGIN_PASSWORD --tenant $env:AZ_LOGIN_TENANT
+                az account show
+              failOnStderr: true
+              showWarnings: true
+              pwsh: true
+            env:
+              AZ_LOGIN_USERNAME: $(AZ_LOGIN_USERNAME)
+              AZ_LOGIN_PASSWORD: $(AZ_LOGIN_PASSWORD)
+              AZ_LOGIN_TENANT: $(AZ_LOGIN_TENANT)
+
+          - task: PowerShell@2
+            displayName: "Lint bicep"
+            inputs:
+              targetType: "inline"
+              script: |
+                az bicep uninstall
+                az config set bicep.use_binary_from_path=false
+                az bicep install
+                az bicep lint --file "$pwd/.arm/stage.main.bicepparam"
+                az bicep lint --file "$pwd/.arm/prod.main.bicepparam"
+              failOnStderr: false
+              showWarnings: true
+              pwsh: true
+
+          - task: PowerShell@2
+            displayName: "Validate bicep"
+            inputs:
+              targetType: "inline"
+              script: |
+                az bicep uninstall
+                az config set bicep.use_binary_from_path=false
+                az bicep install
+                az deployment group validate --subscription $env:SUBSCRIPTION_ID --resource-group $env:VALIDATE_RESOURCE_GROUP_NAME --mode Complete --template-file "$pwd/.arm/main.bicep" --parameters "$pwd/.arm/stage.main.bicepparam" --only-show-errors
+              failOnStderr: false
+              showWarnings: true
+              pwsh: true
+            env:
+              VALIDATE_RESOURCE_GROUP_NAME: $(AZ_BICEP_VALIDATE_RESOURCEGROUP_NAME)
+              SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload ARM Templates"
+            inputs:
+              PathtoPublish: .arm
+              ArtifactName: $(artifactName_arm)
+
+      - job: frontend
+        displayName: Frontend
+        steps:
+          - task: NodeTool@0
+            displayName: "Install Node.js"
+            inputs:
+              versionSpec: "22.x" # Use the latest stable Node.js version compatible with your React app
+
+          - script: npm ci --strict-peer-deps
+            displayName: "Install Dependencies"
+            workingDirectory: "$(fe_folder)"
+
+          - script: npm run format
+            displayName: "Run Format"
+            workingDirectory: "$(fe_folder)"
+
+          - script: npm run lint
+            displayName: "Run Lint"
+            workingDirectory: "$(fe_folder)"
+
+          - script: npm run test
+            displayName: "Run Tests"
+            workingDirectory: "$(fe_folder)"
+
+          - script: npm run build
+            displayName: "Build"
+            workingDirectory: "$(fe_folder)"
+
+      - job: backend
+        displayName: Backend
+        steps:
+          - powershell: |
+              Invoke-WebRequest -Uri https://sh.rustup.rs -OutFile rustup-init.sh
+              bash .\rustup-init.sh --profile default --default-toolchain stable -y
+              echo "##vso[task.prependpath]$env:USERPROFILE\.cargo\bin"
+            displayName: Install Rust
+
+          - task: PowerShell@2
+            displayName: "Build project"
+            inputs:
+              targetType: "inline"
+              script: |
+                cargo build --release --examples
+              failOnStderr: true
+              showWarnings: true
+              pwsh: true
+            workingDirectory: "$(be_folder)"
+
+          - task: PowerShell@2
+            displayName: "Run tests"
+            inputs:
+              targetType: "inline"
+              script: |
+                cargo test --release --all-features --all-targets --no-fail-fast
+              failOnStderr: true
+              showWarnings: true
+              pwsh: true
+            workingDirectory: "$(be_folder)"
+
+          - task: PowerShell@2
+            displayName: "Run fmt"
+            inputs:
+              targetType: "inline"
+              script: |
+                cargo fmt --all -- --check
+              failOnStderr: true
+              showWarnings: true
+              pwsh: true
+            workingDirectory: "$(be_folder)"
+
+          - task: PowerShell@2
+            displayName: "Run clippy"
+            inputs:
+              targetType: "inline"
+              script: |
+                cargo clippy --all-targets --all-features -- -D warnings
+              failOnStderr: true
+              showWarnings: true
+              pwsh: true
+            workingDirectory: "$(be_folder)"
+
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload build output"
+            inputs:
+              pathToPublish: "$(Build.ArtifactStagingDirectory)"
+              artifactName: "$(artifactName_app)"
+              publishLocation: "Container"
+            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))

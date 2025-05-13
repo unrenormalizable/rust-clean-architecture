@@ -1,0 +1,49 @@
+name: 1.$(Date:yy).$(Date:MMdd)$(Rev:.rr)
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+
+pool:
+  vmImage: "windows-latest"
+
+variables:
+  fe_folder: "$(System.DefaultWorkingDirectory)/src/web"
+  be_folder: "$(System.DefaultWorkingDirectory)"
+  artifactName_arm: "rca-arm"
+  artifactName_app: "rca-app"
+
+stages:
+  - template: ./stage.build.yml
+
+  - stage: stage
+    displayName: Deploy to Staging
+    dependsOn: build
+    condition: false
+    jobs:
+      - deployment: DeployStaging
+        environment: "Staging"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: ./steps.deploy.yml
+                  parameters:
+                    deployResourceGroupName: $(AZ_BICEP_DEPLOY_STAGE_RESOURCEGROUP_NAME)
+
+  - stage: prod
+    displayName: "Deploy to Production"
+    dependsOn: stage
+    condition: false
+    jobs:
+      - deployment: DeployProd
+        environment: "Production"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: ./steps.deploy.yml
+                  parameters:
+                    deployResourceGroupName: $(AZ_BICEP_DEPLOY_PROD_RESOURCEGROUP_NAME)
