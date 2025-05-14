@@ -10,7 +10,7 @@
   "arrowParens": "always",
   "bracketSameLine": false,
   "endOfLine": "crlf",
-  "tailwindConfig": "./tailwind.config.js",
+  "tailwindConfig": "./tailwind.config.ts",
   "tailwindStylesheet": "./src/index.css",
   "plugins": ["prettier-plugin-tailwindcss"]
 }

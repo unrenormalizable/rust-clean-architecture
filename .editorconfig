@@ -12,7 +12,7 @@ end_of_line = crlf
 insert_final_newline = false
 
 
-[*.{ps1,psm1,js,ts,fs,json,jsx,tsx,rc,vsext,*manifest,vsct}]
+[*.{ps1,psm1,js,ts,mts,mjs,fs,json,jsx,tsx,rc,vsext,*manifest,vsct}]
 indent_size = 2
 
 [*.md]
@@ -20,6 +20,6 @@ indent_size = 2
 max_line_length = off
 trim_trailing_whitespace = false
 
-[*.{yml,yaml,html,xml,csproj,targets,ruleset,*proj,*rc,bicep}]
+[*.{yml,yaml,html,css,xml,csproj,targets,ruleset,*proj,*rc,bicep}]
 indent_size = 2
 tab_width = 2

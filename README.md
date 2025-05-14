@@ -1,10 +1,11 @@
 # rust/reactjs fullstack app - a fully loaded clean architecture template
 
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg?label=license)](https://creativecommons.org/licenses/by-nc-sa/4.0/) [![Build](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_apis/build/status%2Frust-clean-architecture?branchName=master&stageName=build)](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_build/latest?definitionId=1&branchName=master) [![Staging Deployment](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_apis/build/status%2Frust-clean-architecture?branchName=master&stageName=Deploy%20to%20Staging)](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_build/latest?definitionId=1&branchName=master) [![Production Deployment](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_apis/build/status%2Frust-clean-architecture?branchName=master&stageName=Deploy%20to%20Production)](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_build/latest?definitionId=1&branchName=master)
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg?label=license)](https://creativecommons.org/licenses/by-nc-sa/4.0/) [![Build](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_apis/build/status%2Fmain?branchName=master)](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_build/latest?definitionId=1&branchName=master) [![Staging Deployment](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_apis/build/status%2Frust-clean-architecture?branchName=master&stageName=Deploy%20to%20Staging)](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_build/latest?definitionId=1&branchName=master) [![Production Deployment](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_apis/build/status%2Frust-clean-architecture?branchName=master&stageName=Deploy%20to%20Production)](https://dev.azure.com/unrenormalizable/rust-clean-architecture/_build/latest?definitionId=1&branchName=master)
 
-> built with [**rust-analyzer.vs**](https://marketplace.visualstudio.com/items?itemName=kitamstudios.RustAnalyzer&ssr=false#overview) (free visual studio 2022 extension)
+> [!TIP]
+> built with [**rust-analyzer.vs**](https://marketplace.visualstudio.com/items?itemName=kitamstudios.RustAnalyzer&ssr=false#overview) (free visual studio 2022 extension).
 
-Contributions welcomed!
+contributions welcomed!
 
 ## project
 
