@@ -11,7 +11,7 @@ pool:
 
 variables:
   fe_folder: "$(System.DefaultWorkingDirectory)/src/web"
-  be_folder: "$(System.DefaultWorkingDirectory)"
+  be_folder: "$(System.DefaultWorkingDirectory)/src"
   artifactName_arm: "rca-arm"
   artifactName_app: "rca-app"
 

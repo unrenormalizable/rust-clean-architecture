@@ -14,9 +14,9 @@ const MyComponent = ({ xx }: MyComponentProps) => {
 
 const App = () => {
   return (
-    <div className="bg-gray-300 flex justify-center">
+    <div className="flex justify-center bg-gray-300">
       Hello, world {fnx(1)} <MyComponent xx={5} />
-      <img src={logo} className="size-4 sm:size-4 cursor-pointer" />
+      <img src={logo} className="size-4 cursor-pointer sm:size-4" />
     </div>
   )
 }

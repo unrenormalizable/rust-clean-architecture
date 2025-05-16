@@ -100,6 +100,7 @@ stages:
             inputs:
               targetType: "inline"
               script: |
+                cd $(be_folder)
                 cargo build --release --examples
               failOnStderr: true
               showWarnings: true
@@ -110,6 +111,7 @@ stages:
             inputs:
               targetType: "inline"
               script: |
+                cd $(be_folder)
                 cargo test --release --all-features --all-targets --no-fail-fast
               failOnStderr: true
               showWarnings: true
@@ -120,6 +122,7 @@ stages:
             inputs:
               targetType: "inline"
               script: |
+                cd $(be_folder)
                 cargo fmt --all -- --check
               failOnStderr: true
               showWarnings: true
@@ -130,6 +133,7 @@ stages:
             inputs:
               targetType: "inline"
               script: |
+                cd $(be_folder)
                 cargo clippy --all-targets --all-features -- -D warnings
               failOnStderr: true
               showWarnings: true
