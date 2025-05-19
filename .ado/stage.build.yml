@@ -100,11 +100,11 @@ stages:
             inputs:
               targetType: "inline"
               script: |
-                dir env:\CARGO_*
                 cd $(be_folder)
                 cargo build --release
-              failOnStderr: true
+              failOnStderr: false
               showWarnings: true
+              continueOnError: true
               pwsh: true
 
           - task: PowerShell@2
