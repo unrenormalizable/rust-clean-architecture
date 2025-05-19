@@ -101,7 +101,7 @@ stages:
               targetType: "inline"
               script: |
                 cd $(be_folder)
-                cargo build --release --examples
+                cargo build --release
               failOnStderr: true
               showWarnings: true
               pwsh: true

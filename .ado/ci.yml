@@ -21,7 +21,6 @@ stages:
   - stage: stage
     displayName: Deploy to Staging
     dependsOn: build
-    condition: false
     jobs:
       - deployment: DeployStaging
         environment: "Staging"
@@ -36,7 +35,6 @@ stages:
   - stage: prod
     displayName: "Deploy to Production"
     dependsOn: stage
-    condition: false
     jobs:
       - deployment: DeployProd
         environment: "Production"
