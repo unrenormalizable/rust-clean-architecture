@@ -14,6 +14,7 @@ variables:
   be_folder: "$(System.DefaultWorkingDirectory)/src"
   artifactName_arm: "rca-arm"
   artifactName_app: "rca-app"
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
 stages:
   - template: ./stage.build.yml
